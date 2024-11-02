@@ -80,7 +80,7 @@ namespace BatteryTemperature.Tests
                 _mockControllerAlert.Verify(x => x.SendToController(It.IsAny<BreachType>()), Times.Never);
             }
         }
-*/
+
         [Fact]
         public void CheckAndAlert_ThrowsException_WhenAlertTargetIsInvalid()
         {
@@ -92,4 +92,5 @@ namespace BatteryTemperature.Tests
             Assert.Equal("Invalid alert target", exception.Message);
         }
     }
+    */
 }
