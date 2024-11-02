@@ -1,5 +1,7 @@
+using Moq;
 using System;
 using Xunit;
+
 namespace BatteryTemperature.Tests
 {
     public class TypewiseAlertTests
@@ -47,7 +49,6 @@ namespace BatteryTemperature.Tests
             _mockTypewiseAlert = new Mock<TypewiseAlert>();
             _mockMailAlert = new Mock<MailAlert>();
 
-            // Use the mocks in your CheckandAlert class
             _checkAndAlert = new CheckandAlert(
                 _mockControllerAlert.Object,
                 _mockTypewiseAlert.Object,
@@ -57,17 +58,11 @@ namespace BatteryTemperature.Tests
         [Fact]
         public void CheckAndAlert_SendsToController_WhenAlertTargetIsToController()
         {
-            // Arrange
             var batteryChar = new BatteryCharacter { CoolingType = CoolingType.PassiveCooling };
             var breachType = BreachType.Normal;
-
             _mockTypewiseAlert.Setup(x => x.ClassifyTemperatureBreach(batteryChar.CoolingType, It.IsAny<double>()))
                 .Returns(breachType);
-
-            // Act
             _checkAndAlert.CheckAndAlert(AlertTarget.ToController, batteryChar, 30);
-
-            // Assert
             _mockControllerAlert.Verify(x => x.SendToController(breachType), Times.Once);
             _mockMailAlert.Verify(x => x.SendToEmail(It.IsAny<BreachType>()), Times.Never);
         }
