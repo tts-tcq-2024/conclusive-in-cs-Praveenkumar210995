@@ -43,7 +43,7 @@ Think about guiding refactoring-work in your regular/project teams. Think of the
 You have seen a few workflows in this repository. They are quality-gates to prevent duplication, control complexity and prove functionality. Do you think some of them have potential to guide code-improvements in your team? **yes**
 
 During the next four weeks, what improvement do you plan in your code-quality practice? (in your regular work, not in this repository!) I have started to use clean coding by
-Keeping the cyclomatic complexity in mind while developing code or functions
-One function one task
-closed for modification open for extension principle
-Modularity in code
+/r/1. Keeping the cyclomatic complexity in mind while developing code or functions
+/r/2. One function one task
+/r/3. closed for modification open for extension principle
+/r/4. Modularity in code
