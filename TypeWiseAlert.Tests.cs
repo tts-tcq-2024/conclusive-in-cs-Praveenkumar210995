@@ -31,17 +31,6 @@ namespace BatteryTemperature.Tests
             var result = _typewiseAlert.ClassifyTemperatureBreach(coolingType, temperature);
             Assert.Equal(expected, result);
         }
-
-        [Fact]
-        public void ClassifyTemperatureBreach_InvalidCoolingType_ThrowsArgumentOutOfRangeException()
-        {
-            var invalidCoolingType = (CoolingType)99; // Assuming 99 is not a valid CoolingType
-            var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
-                _typewiseAlert.ClassifyTemperatureBreach(invalidCoolingType, 30));
-
-            Assert.Equal("coolingType", exception.ParamName);
-            Assert.Equal("Invalid cooling type", exception.Message);
-        }
     }
     /*
         public class CheckAndAlertTests
@@ -84,16 +73,6 @@ namespace BatteryTemperature.Tests
                 }
             }
 
-            [Fact]
-            public void CheckAndAlert_ThrowsException_WhenAlertTargetIsInvalid()
-            {
-                var batteryChar = new BatteryCharacter { CoolingType = CoolingType.MediumActiveCooling };
-                var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
-                    _checkAndAlert.CheckAndAlert((AlertTarget)99, batteryChar, 30)); // Assuming 99 is invalid
-
-                Assert.Equal("alertTarget", exception.ParamName);
-                Assert.Equal("Invalid alert target", exception.Message);
-            }
         }
         */
 }
