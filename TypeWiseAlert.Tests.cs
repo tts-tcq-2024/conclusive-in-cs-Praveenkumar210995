@@ -6,6 +6,13 @@ namespace BatteryTemperature.Tests
 {
     public class TypewiseAlertTests
     {
+        private readonly TypewiseAlert _typewiseAlert;
+
+        public TypewiseAlertTests()
+        {
+            _typewiseAlert = new TypewiseAlert();
+        }
+
         [Theory]
         [InlineData(CoolingType.PassiveCooling, 34, BreachType.TooLow)]
         [InlineData(CoolingType.PassiveCooling, 35, BreachType.Normal)]
@@ -18,18 +25,16 @@ namespace BatteryTemperature.Tests
         [InlineData(CoolingType.HighActiveCooling, 46, BreachType.TooHigh)]
         public void ClassifyTemperatureBreach_ValidInputs_ReturnsExpectedBreachType(CoolingType coolingType, double temperature, BreachType expected)
         {
-            var typewiseAlert = new TypewiseAlert();
-            var result = typewiseAlert.ClassifyTemperatureBreach(coolingType, temperature);
+            var result = _typewiseAlert.ClassifyTemperatureBreach(coolingType, temperature);
             Assert.Equal(expected, result);
         }
 
         [Fact]
         public void ClassifyTemperatureBreach_InvalidCoolingType_ThrowsArgumentOutOfRangeException()
         {
-            var typewiseAlert = new TypewiseAlert();
-            var invalidCoolingType = (CoolingType)99;        // Assuming 99 is not a valid CoolingType
+            var invalidCoolingType = (CoolingType)99; // Assuming 99 is not a valid CoolingType
             var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
-                typewiseAlert.ClassifyTemperatureBreach(invalidCoolingType, 30));
+                _typewiseAlert.ClassifyTemperatureBreach(invalidCoolingType, 30));
 
             Assert.Equal("coolingType", exception.ParamName);
             Assert.Equal("Invalid cooling type", exception.Message);
@@ -48,35 +53,32 @@ namespace BatteryTemperature.Tests
             _mockControllerAlert = new Mock<ControllerAlert>();
             _mockTypewiseAlert = new Mock<TypewiseAlert>();
             _mockMailAlert = new Mock<MailAlert>();
-
             _checkAndAlert = new CheckandAlert(
                 _mockControllerAlert.Object,
                 _mockTypewiseAlert.Object,
                 _mockMailAlert.Object);
         }
 
-        [Fact]
-        public void CheckAndAlert_SendsToController_WhenAlertTargetIsToController()
+        [Theory]
+        [InlineData(AlertTarget.ToController, CoolingType.PassiveCooling, 30, BreachType.Normal)]
+        [InlineData(AlertTarget.ToEmail, CoolingType.HighActiveCooling, 50, BreachType.TooHigh)]
+        public void CheckAndAlert_SendsAlertsBasedOnTarget(AlertTarget alertTarget, CoolingType coolingType, double temperature, BreachType breachType)
         {
-            var batteryChar = new BatteryCharacter { CoolingType = CoolingType.PassiveCooling };
-            var breachType = BreachType.Normal;
-            _mockTypewiseAlert.Setup(x => x.ClassifyTemperatureBreach(batteryChar.CoolingType, It.IsAny<double>()))
-                .Returns(breachType);
-            _checkAndAlert.CheckAndAlert(AlertTarget.ToController, batteryChar, 30);
-            _mockControllerAlert.Verify(x => x.SendToController(breachType), Times.Once);
-            _mockMailAlert.Verify(x => x.SendToEmail(It.IsAny<BreachType>()), Times.Never);
-        }
+            var batteryChar = new BatteryCharacter { CoolingType = coolingType };
+            _mockTypewiseAlert.Setup(x => x.ClassifyTemperatureBreach(coolingType, temperature)).Returns(breachType);
 
-        [Fact]
-        public void CheckAndAlert_SendsToEmail_WhenAlertTargetIsToEmail()
-        {
-            var batteryChar = new BatteryCharacter { CoolingType = CoolingType.HighActiveCooling };
-            var breachType = BreachType.TooHigh;
-            _mockTypewiseAlert.Setup(x => x.ClassifyTemperatureBreach(batteryChar.CoolingType, It.IsAny<double>()))
-                .Returns(breachType);
-            _checkAndAlert.CheckAndAlert(AlertTarget.ToEmail, batteryChar, 50);
-            _mockMailAlert.Verify(x => x.SendToEmail(breachType), Times.Once);
-            _mockControllerAlert.Verify(x => x.SendToController(It.IsAny<BreachType>()), Times.Never);
+            _checkAndAlert.CheckAndAlert(alertTarget, batteryChar, temperature);
+
+            if (alertTarget == AlertTarget.ToController)
+            {
+                _mockControllerAlert.Verify(x => x.SendToController(breachType), Times.Once);
+                _mockMailAlert.Verify(x => x.SendToEmail(It.IsAny<BreachType>()), Times.Never);
+            }
+            else if (alertTarget == AlertTarget.ToEmail)
+            {
+                _mockMailAlert.Verify(x => x.SendToEmail(breachType), Times.Once);
+                _mockControllerAlert.Verify(x => x.SendToController(It.IsAny<BreachType>()), Times.Never);
+            }
         }
 
         [Fact]
@@ -85,9 +87,9 @@ namespace BatteryTemperature.Tests
             var batteryChar = new BatteryCharacter { CoolingType = CoolingType.MediumActiveCooling };
             var exception = Assert.Throws<ArgumentOutOfRangeException>(() =>
                 _checkAndAlert.CheckAndAlert((AlertTarget)99, batteryChar, 30)); // Assuming 99 is invalid
+
             Assert.Equal("alertTarget", exception.ParamName);
             Assert.Equal("Invalid alert target", exception.Message);
         }
     }
 }
-
